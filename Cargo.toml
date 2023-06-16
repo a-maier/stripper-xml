@@ -1,0 +1,15 @@
+[package]
+name = "stripper-xml"
+version = "0.1.0"
+description = "Read and write files in the XML format used by STRIPPER"
+authors = ["Andreas Maier <andreas.martin.maier@desy.de>"]
+edition = "2021"
+license = "GPL-3.0-or-later"
+readme = "Readme.md"
+keywords = ["physics"]
+categories = ["science"]
+repository = "https://github.com/a-maier/stripper-xml"
+
+[dependencies]
+quick-xml = { version = "0.29", features = ["serialize"] }
+serde = { version = "1.0", features = ["serde_derive"] }
