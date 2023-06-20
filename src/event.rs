@@ -74,15 +74,15 @@ pub struct Reweights {
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct Id {
-    status: Status,
-    pdg_id: ParticleID,
+    pub status: Status,
+    pub pdg_id: ParticleID,
 }
 
 #[derive(Deserialize_repr, Serialize_repr)]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[derive(EnumString)]
 #[repr(u8)]
-enum Status {
+pub enum Status {
     #[strum(serialize = "0")]
     Outgoing = 0,
     #[strum(serialize = "1")]
