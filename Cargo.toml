@@ -1,7 +1,7 @@
 [package]
 name = "stripper-xml"
 version = "0.1.0"
-description = "Read and write files in the XML format used by STRIPPER"
+description = "(De-)Serialisation for the XML format used by STRIPPER"
 authors = ["Andreas Maier <andreas.martin.maier@desy.de>"]
 edition = "2021"
 license = "GPL-3.0-or-later"
