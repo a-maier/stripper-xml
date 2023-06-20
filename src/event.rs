@@ -99,13 +99,13 @@ impl<'de> Deserialize<'de> for Momentum {
         let momentum_str = String::deserialize(deserializer)?;
         let mut entries = momentum_str.split(',');
         let mut momentum = [0.; 4];
-        for i in 0..momentum.len() {
+        for q in &mut momentum {
             let Some(p) = entries.next() else {
                 return Err(serde::de::Error::custom(
                     ParseErr::NumEntries(momentum_str, 4)
                 ));
             };
-            momentum[i] = p.parse().map_err(serde::de::Error::custom)?;
+            *q = p.parse().map_err(serde::de::Error::custom)?;
         }
         if entries.next().is_some() {
             return Err(serde::de::Error::custom(
