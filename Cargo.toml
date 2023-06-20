@@ -5,9 +5,9 @@ description = "(De-)Serialisation for the XML format used by STRIPPER"
 authors = ["Andreas Maier <andreas.martin.maier@desy.de>"]
 edition = "2021"
 license = "GPL-3.0-or-later"
-readme = "Readme.md"
+# readme = "Readme.md"
 keywords = ["physics"]
-categories = ["science"]
+categories = ["science", "parser-implementations"]
 repository = "https://github.com/a-maier/stripper-xml"
 
 [dependencies]
