@@ -43,7 +43,7 @@ pub struct Reweight {
 }
 
 #[derive(Clone, Debug, Default, PartialEq, PartialOrd)]
-pub struct XSScale ([f64; 2]);
+pub struct XSScale (pub [f64; 2]);
 
 impl<'de> Deserialize<'de> for XSScale {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
