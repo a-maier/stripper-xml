@@ -1,4 +1,6 @@
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, Serializer};
+
+use crate::ParseErr;
 
 #[derive(Deserialize, Serialize)]
 #[derive(Clone, Debug, Default, PartialEq, PartialOrd)]
@@ -18,7 +20,7 @@ pub struct Normalization {
 #[serde(rename_all = "PascalCase")]
 pub struct XSection {
     #[serde(rename = "XSNeg")]
-    pub xs_neg: String,
+    pub xs_neg: XSScale,
     pub max_weight_neg: f64,
     pub total_events_neg: u64,
     pub accepted_events_neg: u64,
@@ -26,11 +28,11 @@ pub struct XSection {
 }
 
 #[derive(Deserialize, Serialize)]
-#[derive(Clone, Debug, Default, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[derive(Clone, Debug, Default, PartialEq, PartialOrd)]
 pub struct Contribution {
     #[serde(rename = "@name")]
     pub name: String,
-    pub xsection: String,
+    pub xsection: XSScale,
     pub rw: Reweight,
 }
 
@@ -38,6 +40,45 @@ pub struct Contribution {
 #[derive(Clone, Debug, Default, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct Reweight {
     pub rwentry: Vec<String>,
+}
+
+#[derive(Clone, Debug, Default, PartialEq, PartialOrd)]
+pub struct XSScale ([f64; 2]);
+
+impl<'de> Deserialize<'de> for XSScale {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de> {
+        let xs_scale_str = String::deserialize(deserializer)?;
+        let mut entries = xs_scale_str.split(',');
+        let mut xs_scale = [0.; 2];
+        for q in &mut xs_scale {
+            let Some(p) = entries.next() else {
+                return Err(serde::de::Error::custom(
+                    ParseErr::NumEntries(xs_scale_str, 2)
+                ));
+            };
+            *q = p.parse().map_err(serde::de::Error::custom)?;
+        }
+        if entries.next().is_some() {
+            return Err(serde::de::Error::custom(
+                ParseErr::NumEntries(xs_scale_str, 2)
+            ));
+        }
+        Ok(Self(xs_scale))
+    }
+}
+
+impl Serialize for XSScale {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let p = self.0;
+        serializer.serialize_str(
+            &format!("{},{}", p[0], p[1])
+        )
+    }
 }
 
 #[cfg(test)]
@@ -85,6 +126,7 @@ File generated with STRIPPER v0.1 for online data base
         let norm: Normalization = quick_xml::de::from_str(REF_NORM).unwrap();
         assert_eq!(norm.name, "Cm");
         assert_eq!(norm.contribution.name, "Cm");
+        assert_eq!(norm.contribution.xsection.0, [687.103,0.978277]);
         assert_eq!(
             norm.contribution.rw.rwentry,
             ["x1", "x2", "log(muR**2)", "log(muF**2)"]
