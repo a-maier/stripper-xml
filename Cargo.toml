@@ -11,10 +11,10 @@ categories = ["science", "parser-implementations"]
 repository = "https://github.com/a-maier/stripper-xml"
 
 [dependencies]
-hepmc2 = { version = "0.5", optional = true }
-itertools = "0.11"
-particle_id = { version = "0.4", features = ["serde"] }
-quick-xml = { version = "0.30", features = ["serialize"] }
+hepmc2 = { version = "0.6", optional = true }
+itertools = "0.12"
+particle_id = { version = "0.5", features = ["serde"] }
+quick-xml = { version = "0.31", features = ["serialize"] }
 serde = { version = "1.0", features = ["serde_derive"] }
 serde_repr = "0.1"
 strum = { version = "0.25", features = ["derive", "strum_macros"] }
