@@ -1,7 +1,7 @@
-use hepmc2::event::{Vertex, EnergyUnit, LengthUnit};
+use hepmc2::event::{EnergyUnit, LengthUnit, Vertex};
 use particle_id::ParticleID;
 
-use crate::{SubEvent, Status, Particle, Momentum, Id};
+use crate::{Id, Momentum, Particle, Status, SubEvent};
 
 const HEPMC_INCOMING_STATUS: i32 = 4;
 const HEPMC_OUTGOING_STATUS: i32 = 1;
@@ -14,9 +14,8 @@ const VTX_ID: i32 = -1;
 impl From<&SubEvent> for hepmc2::Event {
     fn from(ev: &SubEvent) -> Self {
         let mut incoming = Vec::with_capacity(2);
-        let mut outgoing = Vec::with_capacity(
-            std::cmp::max(ev.particles.len(), 2) - 2
-        );
+        let mut outgoing =
+            Vec::with_capacity(std::cmp::max(ev.particles.len(), 2) - 2);
         for particle in &ev.particles {
             match particle.id.status {
                 Status::Outgoing => {
@@ -48,16 +47,20 @@ impl From<&SubEvent> for hepmc2::Event {
 
 impl From<&hepmc2::Event> for SubEvent {
     fn from(ev: &hepmc2::Event) -> Self {
-        let particles = ev.vertices.iter().flat_map(|vx| {
-            vx.particles_in
-                .iter()
-                .filter(|p| p.status == HEPMC_INCOMING_STATUS)
-                .chain(
-                    vx.particles_out
-                        .iter()
-                        .filter(|p| p.status == HEPMC_OUTGOING_STATUS)
-                )
-        }).map(Into::into)
+        let particles = ev
+            .vertices
+            .iter()
+            .flat_map(|vx| {
+                vx.particles_in
+                    .iter()
+                    .filter(|p| p.status == HEPMC_INCOMING_STATUS)
+                    .chain(
+                        vx.particles_out
+                            .iter()
+                            .filter(|p| p.status == HEPMC_OUTGOING_STATUS),
+                    )
+            })
+            .map(Into::into)
             .collect();
 
         Self {
@@ -90,7 +93,7 @@ impl From<&Particle> for hepmc2::event::Particle {
     fn from(particle: &Particle) -> Self {
         let status = match particle.id.status {
             Status::Incoming => HEPMC_INCOMING_STATUS,
-            Status::Outgoing => HEPMC_OUTGOING_STATUS
+            Status::Outgoing => HEPMC_OUTGOING_STATUS,
         };
         let p = particle.momentum.0;
         Self {

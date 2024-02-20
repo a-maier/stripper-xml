@@ -1,8 +1,18 @@
 use itertools::Itertools;
 use serde::{Deserialize, Serialize, Serializer};
 
-#[derive(Deserialize, Serialize)]
-#[derive(Clone, Debug, Default, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[derive(
+    Deserialize,
+    Serialize,
+    Clone,
+    Debug,
+    Default,
+    Eq,
+    PartialEq,
+    Ord,
+    PartialOrd,
+    Hash,
+)]
 #[serde(rename_all = "PascalCase")]
 pub struct Init {
     pub incoming: String,
@@ -10,25 +20,35 @@ pub struct Init {
     pub channels: Channels,
 }
 
-#[derive(Deserialize, Serialize)]
-#[derive(Clone, Debug, Default, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[derive(
+    Deserialize,
+    Serialize,
+    Clone,
+    Debug,
+    Default,
+    Eq,
+    PartialEq,
+    Ord,
+    PartialOrd,
+    Hash,
+)]
 #[serde(rename_all = "PascalCase")]
 pub struct Channels {
-    pub channel: Vec<Channel>
+    pub channel: Vec<Channel>,
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct Channel (pub Vec<i32>);
+pub struct Channel(pub Vec<i32>);
 
 impl<'de> Deserialize<'de> for Channel {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
-        D: serde::Deserializer<'de> {
+        D: serde::Deserializer<'de>,
+    {
         use serde::de::Error;
         let channel_str = String::deserialize(deserializer)?;
-        let entries: Result<Vec<i32>, _> = channel_str.split(',')
-            .map(|e| e.parse())
-            .collect();
+        let entries: Result<Vec<i32>, _> =
+            channel_str.split(',').map(|e| e.parse()).collect();
         let entries = entries.map_err(Error::custom)?;
         Ok(Self(entries))
     }
@@ -72,6 +92,9 @@ mod tests {
 </Init>
 "#;
         let init: Init = quick_xml::de::from_str(REF_CHANNELS).unwrap();
-        assert_eq!(init.channels.channel[5].0, [5,5,-1,1,-2,2,-3,3,-4,4,-5,5]);
+        assert_eq!(
+            init.channels.channel[5].0,
+            [5, 5, -1, 1, -2, 2, -3, 3, -4, 4, -5, 5]
+        );
     }
 }

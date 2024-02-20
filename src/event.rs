@@ -4,8 +4,9 @@ use serde_repr::*;
 use strum::EnumString;
 use thiserror::Error;
 
-#[derive(Deserialize, Serialize)]
-#[derive(Clone, Debug, Default, PartialEq, PartialOrd)]
+#[derive(
+    Deserialize, Serialize, Clone, Debug, Default, PartialEq, PartialOrd,
+)]
 pub struct Eventrecord {
     #[serde(rename = "@nevents")]
     pub nevents: u64,
@@ -21,16 +22,18 @@ pub struct Eventrecord {
     pub events: Vec<Event>,
 }
 
-#[derive(Deserialize, Serialize)]
-#[derive(Clone, Debug, Default, PartialEq, PartialOrd)]
+#[derive(
+    Deserialize, Serialize, Clone, Debug, Default, PartialEq, PartialOrd,
+)]
 #[serde(rename = "e")]
 pub struct Event {
     #[serde(rename = "se")]
     pub subevents: Vec<SubEvent>,
 }
 
-#[derive(Deserialize, Serialize)]
-#[derive(Clone, Debug, Default, PartialEq, PartialOrd)]
+#[derive(
+    Deserialize, Serialize, Clone, Debug, Default, PartialEq, PartialOrd,
+)]
 #[serde(rename = "se")]
 pub struct SubEvent {
     #[serde(rename = "@w")]
@@ -42,11 +45,10 @@ pub struct SubEvent {
     #[serde(rename = "p")]
     pub particles: Vec<Particle>,
     #[serde(rename = "rw")]
-    pub reweight: Vec<Reweight>
+    pub reweight: Vec<Reweight>,
 }
 
-#[derive(Deserialize, Serialize)]
-#[derive(Clone, Debug, PartialEq, PartialOrd)]
+#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, PartialOrd)]
 #[serde(rename = "p")]
 pub struct Particle {
     #[serde(rename = "@id")]
@@ -55,8 +57,9 @@ pub struct Particle {
     pub momentum: Momentum,
 }
 
-#[derive(Deserialize, Serialize)]
-#[derive(Clone, Debug, Default, PartialEq, PartialOrd)]
+#[derive(
+    Deserialize, Serialize, Clone, Debug, Default, PartialEq, PartialOrd,
+)]
 #[serde(rename = "rw")]
 pub struct Reweight {
     #[serde(rename = "@ch")]
@@ -78,9 +81,19 @@ pub struct Id {
     pub pdg_id: ParticleID,
 }
 
-#[derive(Deserialize_repr, Serialize_repr)]
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
-#[derive(EnumString)]
+#[derive(
+    Deserialize_repr,
+    Serialize_repr,
+    Copy,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    Ord,
+    PartialOrd,
+    Hash,
+    EnumString,
+)]
 #[repr(u8)]
 pub enum Status {
     #[strum(serialize = "0")]
@@ -90,27 +103,30 @@ pub enum Status {
 }
 
 #[derive(Clone, Debug, Default, PartialEq, PartialOrd)]
-pub struct Momentum (pub [f64; 4]);
+pub struct Momentum(pub [f64; 4]);
 
 impl<'de> Deserialize<'de> for Momentum {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
-        D: serde::Deserializer<'de> {
+        D: serde::Deserializer<'de>,
+    {
         let momentum_str = String::deserialize(deserializer)?;
         let mut entries = momentum_str.split(',');
         let mut momentum = [0.; 4];
         for q in &mut momentum {
             let Some(p) = entries.next() else {
-                return Err(serde::de::Error::custom(
-                    ParseErr::NumEntries(momentum_str, 4)
-                ));
+                return Err(serde::de::Error::custom(ParseErr::NumEntries(
+                    momentum_str,
+                    4,
+                )));
             };
             *q = p.parse().map_err(serde::de::Error::custom)?;
         }
         if entries.next().is_some() {
-            return Err(serde::de::Error::custom(
-                ParseErr::NumEntries(momentum_str, 4)
-            ));
+            return Err(serde::de::Error::custom(ParseErr::NumEntries(
+                momentum_str,
+                4,
+            )));
         }
         Ok(Self(momentum))
     }
@@ -121,41 +137,33 @@ impl Serialize for Momentum {
         S: Serializer,
     {
         let p = self.0;
-        serializer.serialize_str(
-            &format!("{},{},{},{}", p[0], p[1], p[2], p[3])
-        )
+        serializer
+            .serialize_str(&format!("{},{},{},{}", p[0], p[1], p[2], p[3]))
     }
 }
 
 impl<'de> Deserialize<'de> for Reweights {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
-        D: serde::Deserializer<'de> {
-        use ParseErr::NumEntries;
+        D: serde::Deserializer<'de>,
+    {
         use serde::de::Error;
+        use ParseErr::NumEntries;
         let reweights_str = String::deserialize(deserializer)?;
         let mut reweights = reweights_str.split(',');
         let Some(x1) = reweights.next() else {
-            return Err(Error::custom(
-                NumEntries(reweights_str, 2)
-            ));
+            return Err(Error::custom(NumEntries(reweights_str, 2)));
         };
         let x1 = x1.parse().map_err(Error::custom)?;
         let Some(x2) = reweights.next() else {
-            return Err(Error::custom(
-                NumEntries(reweights_str, 2)
-            ));
+            return Err(Error::custom(NumEntries(reweights_str, 2)));
         };
         let x2 = x2.parse().map_err(Error::custom)?;
         let mut log_coeff = Vec::new();
         for val in reweights {
             log_coeff.push(val.parse().map_err(Error::custom)?);
         }
-        Ok(Self {
-            x1,
-            x2,
-            log_coeff,
-        })
+        Ok(Self { x1, x2, log_coeff })
     }
 }
 
@@ -176,35 +184,32 @@ impl Serialize for Reweights {
 impl<'de> Deserialize<'de> for Id {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
-        D: serde::Deserializer<'de> {
+        D: serde::Deserializer<'de>,
+    {
         let id_str = String::deserialize(deserializer)?;
         let mut entries = id_str.split(',');
         let Some(status) = entries.next() else {
-            return Err(serde::de::Error::custom(
-                ParseErr::NumEntries(id_str, 2)
-            ));
+            return Err(serde::de::Error::custom(ParseErr::NumEntries(
+                id_str, 2,
+            )));
         };
-        let status = status.parse().map_err(
-            serde::de::Error::custom
-        )?;
+        let status = status.parse().map_err(serde::de::Error::custom)?;
 
         let Some(pdg_id) = entries.next() else {
-            return Err(serde::de::Error::custom(
-                ParseErr::NumEntries(id_str, 2)
-            ));
+            return Err(serde::de::Error::custom(ParseErr::NumEntries(
+                id_str, 2,
+            )));
         };
-        let pdg_id: i32 = pdg_id.parse().map_err(
-            serde::de::Error::custom
-        )?;
+        let pdg_id: i32 = pdg_id.parse().map_err(serde::de::Error::custom)?;
         let pdg_id = ParticleID::new(pdg_id);
 
         if entries.next().is_some() {
-            return Err(serde::de::Error::custom(
-                ParseErr::NumEntries(id_str, 2)
-            ));
+            return Err(serde::de::Error::custom(ParseErr::NumEntries(
+                id_str, 2,
+            )));
         }
 
-        Ok(Self{status, pdg_id})
+        Ok(Self { status, pdg_id })
     }
 }
 impl Serialize for Id {
@@ -212,9 +217,11 @@ impl Serialize for Id {
     where
         S: Serializer,
     {
-        serializer.serialize_str(
-            &format!("{},{}", self.status as u8, self.pdg_id.id())
-        )
+        serializer.serialize_str(&format!(
+            "{},{}",
+            self.status as u8,
+            self.pdg_id.id()
+        ))
     }
 }
 
@@ -224,13 +231,19 @@ impl Serialize for Id {
 pub trait WriteXML {
     type Error;
 
-    fn write<W: std::io::Write>(&self, writer: &mut W) -> Result<(), Self::Error>;
+    fn write<W: std::io::Write>(
+        &self,
+        writer: &mut W,
+    ) -> Result<(), Self::Error>;
 }
 
 impl WriteXML for Eventrecord {
     type Error = std::io::Error;
 
-    fn write<W: std::io::Write>(&self, writer: &mut W) -> Result<(), Self::Error> {
+    fn write<W: std::io::Write>(
+        &self,
+        writer: &mut W,
+    ) -> Result<(), Self::Error> {
         writeln!(
             writer,
             "<Eventrecord nevents=\"{}\" nsubevents=\"{}\" nreweights=\"{}\" as=\"{}\" name=\"{}\">",
@@ -239,7 +252,8 @@ impl WriteXML for Eventrecord {
         writeln!(
             writer,
             "<!--\nRecord generated with {} {}\n-->",
-            env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION")
+            env!("CARGO_PKG_NAME"),
+            env!("CARGO_PKG_VERSION")
         )?;
         for event in &self.events {
             event.write(writer)?;
@@ -251,7 +265,10 @@ impl WriteXML for Eventrecord {
 impl WriteXML for Event {
     type Error = std::io::Error;
 
-    fn write<W: std::io::Write>(&self, writer: &mut W) -> Result<(), Self::Error> {
+    fn write<W: std::io::Write>(
+        &self,
+        writer: &mut W,
+    ) -> Result<(), Self::Error> {
         writer.write_all(b"<e>\n")?;
         for subevent in &self.subevents {
             subevent.write(writer)?;
@@ -263,7 +280,10 @@ impl WriteXML for Event {
 impl WriteXML for SubEvent {
     type Error = std::io::Error;
 
-    fn write<W: std::io::Write>(&self, writer: &mut W) -> Result<(), Self::Error> {
+    fn write<W: std::io::Write>(
+        &self,
+        writer: &mut W,
+    ) -> Result<(), Self::Error> {
         use std::fmt::Write;
 
         writeln!(
@@ -287,11 +307,10 @@ impl WriteXML for SubEvent {
     }
 }
 
-
 #[derive(Debug, Error)]
 pub enum ParseErr {
     #[error("'{0}' is not a comma-separated list with {1} float values")]
-    NumEntries(String, usize)
+    NumEntries(String, usize),
 }
 
 #[cfg(test)]
@@ -307,49 +326,59 @@ mod tests {
 <p id="0,-6"> 5757.091237,58.25473457,-9.621341818,5754.203426 </p>
 <rw ch="12"> 0.8893243414,0.05144448245,-0.0002369763508 </rw>
 </se>"#;
-        use Status::*;
         use particle_id::sm_elementary_particles::*;
+        use Status::*;
         let ref_event = SubEvent {
             weight: -0.0002369763508,
             mu_r: 91.16253934,
             mu_f: 91.16253934,
             particles: vec![
-                Particle{
-                    id: Id{
+                Particle {
+                    id: Id {
                         status: Incoming,
                         pdg_id: gluon,
                     },
-                    momentum: Momentum([5780.608219,0.,0.,5780.608219])
+                    momentum: Momentum([5780.608219, 0., 0., 5780.608219]),
                 },
-                Particle{
-                    id: Id{
+                Particle {
+                    id: Id {
                         status: Incoming,
                         pdg_id: gluon,
                     },
-                    momentum: Momentum([334.3891359,0.,0.,-334.3891359])
+                    momentum: Momentum([334.3891359, 0., 0., -334.3891359]),
                 },
-                Particle{
-                    id: Id{
+                Particle {
+                    id: Id {
                         status: Outgoing,
                         pdg_id: top,
                     },
-                    momentum: Momentum([357.9061187,-58.25473457,9.621341818,-307.9843429])
+                    momentum: Momentum([
+                        357.9061187,
+                        -58.25473457,
+                        9.621341818,
+                        -307.9843429,
+                    ]),
                 },
-                Particle{
-                    id: Id{
+                Particle {
+                    id: Id {
                         status: Outgoing,
                         pdg_id: anti_top,
                     },
-                    momentum: Momentum([5757.091237,58.25473457,-9.621341818,5754.203426])
-                }
+                    momentum: Momentum([
+                        5757.091237,
+                        58.25473457,
+                        -9.621341818,
+                        5754.203426,
+                    ]),
+                },
             ],
-            reweight: vec![ Reweight {
+            reweight: vec![Reweight {
                 channel: 12,
-                reweights: Reweights{
+                reweights: Reweights {
                     x1: 0.8893243414,
                     x2: 0.05144448245,
-                    log_coeff: vec![-0.0002369763508]
-                }
+                    log_coeff: vec![-0.0002369763508],
+                },
             }],
         };
         let event: SubEvent = quick_xml::de::from_str(txt).unwrap();
@@ -401,7 +430,6 @@ File generated with STRIPPER v0.1 for online data base
 "#;
     #[test]
     fn deser_file() {
-
         let record: Eventrecord = quick_xml::de::from_str(REF_RECORD).unwrap();
         assert_eq!(record.nevents, 2286);
         assert_eq!(record.nsubevents, 2286);
@@ -413,12 +441,13 @@ File generated with STRIPPER v0.1 for online data base
 
     #[test]
     fn ser_file() {
-
         let record: Eventrecord = quick_xml::de::from_str(REF_RECORD).unwrap();
         let mut tmp = br#"<?xml version="1.0" encoding="UTF-8"?>
-"#.to_vec();
+"#
+        .to_vec();
         record.write(&mut tmp).unwrap();
-        let record_2: Eventrecord = quick_xml::de::from_reader(tmp.as_slice()).unwrap();
+        let record_2: Eventrecord =
+            quick_xml::de::from_reader(tmp.as_slice()).unwrap();
         assert_eq!(record, record_2);
     }
 }
